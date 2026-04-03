@@ -257,6 +257,9 @@ textarea{resize:vertical;min-height:80px;line-height:1.6;}
     <div id="successTitle" style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px;"></div>
     <div id="successSub" style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:24px;"></div>
     <div id="successSummary" style="background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:16px 20px;text-align:left;margin-bottom:24px;font-size:13px;line-height:1.8;"></div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+      <button id="successEmailBtn" onclick="emailReorderList()" style="width:100%;background:rgba(30,125,69,0.15);border:1.5px solid var(--green);color:#2ecc71;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:12px;border-radius:6px;cursor:pointer;display:none;">&#x2709; Email Reorder List</button>
+    </div>
     <button onclick="resetForm()" style="background:transparent;border:1.5px solid var(--gold);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:12px 28px;border-radius:6px;cursor:pointer;">New Inspection</button>
   </div>
 </div>
@@ -834,17 +837,20 @@ function submitInventory() {
 
   var scriptUrl = localStorage.getItem(SCRIPT_URL_KEY) || "";
   function onDone() {
-    showSuccess(verdict, payload, failList, expList);
+    btn.disabled = false;
+    btn.textContent = "Submit Inventory";
+    showSuccess(verdict, payload, failList, expList, containerFailList);
   }
   if (scriptUrl) {
     fetch(scriptUrl, {method:"POST",mode:"no-cors",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
-      .then(onDone).catch(onDone);
+      .then(function(){ setTimeout(onDone, 500); })
+      .catch(function(){ setTimeout(onDone, 500); });
   } else {
     onDone();
   }
 }
 
-function showSuccess(verdict, payload, failList, expList) {
+function showSuccess(verdict, payload, failList, expList, containerFailList) {
   var icon = document.getElementById("successIcon");
   var title = document.getElementById("successTitle");
   var sub = document.getElementById("successSub");
@@ -878,6 +884,14 @@ function showSuccess(verdict, payload, failList, expList) {
   html += sumRow("Photos", payload.photoCount + " attached");
 
   document.getElementById("successSummary").innerHTML = html;
+
+  // Show email reorder button if there are failed or expiring items
+  var emailBtn = document.getElementById("successEmailBtn");
+  if (emailBtn) {
+    var hasReorder = failList.length > 0 || expList.length > 0;
+    emailBtn.style.display = hasReorder ? "block" : "none";
+  }
+
   document.getElementById("page-form").style.display = "none";
   document.getElementById("page-success").style.display = "block";
   document.getElementById("navTabs").style.display = "none";
