@@ -303,6 +303,38 @@ textarea{resize:vertical;min-height:80px;line-height:1.6;}
   <div class="qr-intro">Follow these steps once to connect this form to a dedicated inventory Google Sheet. Each submission logs in real time so clients can monitor their kit status.</div>
 
   <div class="setup-step">
+    <div class="step-num">Step 1 &mdash; Create a new Google Sheet</div>
+    <div class="step-text">Go to <code>sheets.google.com</code> and create a new sheet named e.g. <code>Metallus Kit Inventory Log</code>. Add these headers in row 1:<br><br>
+    <code>Date | Location | Inspector | Kit Class | Result | Failed Items | Container Issues | Expiring Items | Notes | Photos</code></div>
+  </div>
+  <div class="setup-step">
+    <div class="step-num">Step 2 &mdash; Open Apps Script</div>
+    <div class="step-text">In your Sheet click <code>Extensions</code> &rarr; <code>Apps Script</code>. Delete any existing code, paste the script below, and click Save.</div>
+  </div>
+  <div class="script-box" id="scriptBox">function doPost(e) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var data = JSON.parse(e.postData.contents);
+    sheet.appendRow([
+      data.date, data.location, data.inspector,
+      data.kitClass, data.result, data.failedItems,
+      data.containerFails, data.expiring,
+      data.notes, data.photoCount + " photo(s)"
+    ]);
+    return ContentService.createTextOutput(JSON.stringify({status:"ok"})).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({status:"error",message:err.toString()})).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({status:"ok"})).setMimeType(ContentService.MimeType.JSON);
+}</div>
+  <button class="copy-btn" onclick="copyScript()">Copy Script</button>
+  <div class="setup-step">
+    <div class="step-num">Step 3 &mdash; Deploy as Web App</div>
+    <div class="step-text">Click <code>Deploy</code> &rarr; <code>New deployment</code>. Type: <code>Web app</code>. Execute as: <code>Me</code>. Who has access: <code>Anyone</code>. Click <code>Deploy</code> and authorize. Copy the Web App URL.</div>
+  </div>
+  <div class="setup-step">
     <div class="step-num">Step 4 &mdash; Add URL to Client above</div>
     <div class="step-text">Copy the Web App URL after deploying and paste it into the <strong style="color:var(--gold);">Script URL</strong> field for that client in the <strong style="color:var(--gold);">Client Management</strong> section at the top of this Setup tab. The form will automatically use the correct URL when you select that client.</div>
   </div>
