@@ -923,11 +923,33 @@ document.querySelectorAll = document.querySelectorAll || function(){return [];};
 var CLIENTS_KEY = "btm_clients";
 
 function loadClients() {
-  try { return JSON.parse(localStorage.getItem(CLIENTS_KEY)) || []; } catch(e) { return []; }
+  try {
+    var hash = window.location.hash;
+    if (hash && hash.indexOf("clients=") > -1) {
+      var encoded = hash.split("clients=")[1];
+      var decoded = decodeURIComponent(escape(atob(encoded)));
+      var parsed = JSON.parse(decoded);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        try { localStorage.setItem(CLIENTS_KEY, JSON.stringify(parsed)); } catch(e) {}
+        return parsed;
+      }
+    }
+  } catch(e) {}
+  try {
+    var raw = localStorage.getItem(CLIENTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) { return []; }
 }
 
 function saveClients(clients) {
-  localStorage.setItem(CLIENTS_KEY, JSON.stringify(clients));
+  var data = JSON.stringify(clients);
+  // Save to localStorage
+  try { localStorage.setItem(CLIENTS_KEY, data); } catch(e) {}
+  // ALSO save to URL hash - this ALWAYS survives refresh
+  try {
+    var encoded = btoa(unescape(encodeURIComponent(data)));
+    window.location.hash = "clients=" + encoded;
+  } catch(e) {}
 }
 
 function renderClientSelector() {
