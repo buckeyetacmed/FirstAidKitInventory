@@ -946,6 +946,8 @@ function switchTab(tab) {
   document.getElementById("page-form").style.display = tab==="form" ? "block" : "none";
   document.getElementById("page-setup").style.display = tab==="setup" ? "block" : "none";
   document.getElementById("page-success").style.display = "none";
+  if (tab === "form") { renderClientSelector(); updateClientWarning(); }
+  if (tab === "setup") { renderClientList(); updateBackupBox(); }
 }
 
 // Add page class for CSS
@@ -1072,6 +1074,7 @@ function renderClientList() {
         fresh[idx2].scriptUrl = ui.value;
         saveClients(fresh);
         renderClientSelector();
+        updateClientWarning();
         updateBackupBox();
         sl.style.display = "inline";
         clearTimeout(sl._t);
@@ -1141,6 +1144,11 @@ window.addEventListener("load", function(){
   renderClientList();
   updateClientWarning();
   updateBackupBox();
+  // Second pass after short delay to catch any timing issues
+  setTimeout(function(){
+    renderClientSelector();
+    updateClientWarning();
+  }, 300);
 });
 </script>
 </body>
