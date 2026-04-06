@@ -1002,13 +1002,20 @@ function renderClientList() {
     savedLbl.textContent = "\u2713 Saved!";
     (function(ni, ui, idx2, sl) {
       saveBtn.addEventListener("click", function() {
-        clients[idx2].name = ni.value;
-        clients[idx2].scriptUrl = ui.value;
-        saveClients(clients);
+        // Always re-read from localStorage to avoid stale closure
+        var fresh = loadClients();
+        if (!fresh[idx2]) fresh[idx2] = {};
+        fresh[idx2].name = ni.value;
+        fresh[idx2].scriptUrl = ui.value;
+        saveClients(fresh);
         renderClientSelector();
         sl.style.display = "inline";
         clearTimeout(sl._t);
         sl._t = setTimeout(function(){ sl.style.display="none"; }, 2500);
+        // Debug: confirm it saved
+        var check = loadClients();
+        console.log("Saved clients:", JSON.stringify(check));
+        alert("Saved! Client: " + ni.value + " | Stored: " + check.length + " client(s). You can now refresh to verify.");
       });
     })(nameIn, urlIn, idx, savedLbl);
     saveRow.appendChild(saveBtn);
